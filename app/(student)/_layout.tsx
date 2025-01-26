@@ -4,9 +4,9 @@ import { Redirect, Stack } from 'expo-router';
 export default function StudentLayout() {
   const { user } = useAuth();
 
-  if (user === null) {
-    return <Redirect href={'/login'} />;
-  }
+  // if (user === null) {
+  //   return <Redirect href={'/login'} />;
+  // }
   
   return (
     <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
