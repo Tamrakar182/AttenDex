@@ -9,6 +9,7 @@ import {
 import React, { useState } from 'react';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const EditProfile = () => {
   const [name, setName] = useState('John Doe');
@@ -36,12 +37,12 @@ const EditProfile = () => {
     });
 
     if (!result.canceled) {
-      setProfilePhoto({ uri: result.uri });
+      setProfilePhoto({ uri: result.assets[0].uri });
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       {/* Header with Back and Save Icons */}
       <View
         style={{
@@ -146,7 +147,7 @@ const EditProfile = () => {
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 

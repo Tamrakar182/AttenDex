@@ -1,3 +1,4 @@
+import Providers from '@/components/Provider';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -7,6 +8,11 @@ import 'react-native-reanimated';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+SplashScreen.setOptions({
+  duration: 500,
+  fade: true,
+});
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -35,8 +41,11 @@ export default function RootLayout() {
   }
 
   return (
-    <>
-      <Stack initialRouteName='login' screenOptions={{ headerShown: false }}>
+    <Providers>
+      <Stack
+        initialRouteName='login'
+        screenOptions={{ headerShown: false, animation: 'fade' }}
+      >
         <Stack.Screen name='login' options={{ headerShown: false }} />
         <Stack.Screen name='(auth)' options={{ headerShown: false }} />
         <Stack.Screen name='(student)' options={{ headerShown: false }} />
@@ -44,6 +53,6 @@ export default function RootLayout() {
         <Stack.Screen name='+not-found' />
       </Stack>
       <StatusBar style='dark' />
-    </>
+    </Providers>
   );
 }

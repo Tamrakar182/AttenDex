@@ -15,31 +15,37 @@ interface Props {
 
 const classes = [
   {
+    id: '1',
     title: 'IIT',
     section: '6th Sem - Sec B',
     time: '6:45-7:30am',
   },
   {
+    id: '2',
     title: 'DBMS',
     section: '5th Sem - Sec A',
     time: '8:00-9:30am',
   },
   {
+    id: '3',
     title: 'Networks',
     section: '7th Sem - Sec C',
     time: '10:00-11:30am',
   },
   {
+    id: '4',
     title: 'Security',
     section: '8th Sem - Sec C',
     time: '6:45-7:30am',
   },
   {
+    id: '5',
     title: 'Digital Logic',
     section: '5th Sem - Sec A',
     time: '8:00-9:30am',
   },
   {
+    id: '6',
     title: 'Networks',
     section: '7th Sem - Sec C',
     time: '10:00-11:30am',
@@ -104,7 +110,7 @@ function getGreeting() {
 }
 
 export default function HomeScreen() {
-  const [userName, setUserName] = useState('User');
+  const [userName, setUserName] = useState('Teacher');
 
   const profilePicture = require('../../../assets/images/profile.png');
   const logo = require('../../../assets/images/attendexlogowhite.png');
@@ -230,62 +236,14 @@ export default function HomeScreen() {
             title={item.title}
             section={item.section}
             time={item.time}
-            onPress={() => router.push('/(student)/subject/[id]')}
+            onPress={() => router.push({
+              pathname: '/(teacher)/subject/[id]',
+              params: { id: item.id, title: item.title, section: item.section }
+            })}
           />
         )}
         ListHeaderComponent={<HeaderComponent />}
-        ListFooterComponent={
-          <View
-            style={{ marginTop: 10, marginBottom: 80, marginHorizontal: 5 }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                paddingHorizontal: 15,
-              }}
-            >
-              <Text
-                style={{ fontSize: 20, fontWeight: 'bold', color: '#0065B3' }}
-              >
-                Attendance History
-              </Text>
-              <Link href='/(student)/attendance'>
-                <Text style={{ color: '#0065B3' }}>View All</Text>
-              </Link>
-            </View>
-            <View
-              style={{
-                backgroundColor: '#E6EDF4',
-                padding: 10,
-                borderRadius: 10,
-                margin: 15,
-              }}
-            >
-              {attendanceHistory.map((entry, index) => (
-                <View
-                  key={index}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 5,
-                    padding: 10,
-                  }}
-                >
-                  <Ionicons name='time-outline' size={18} color='#0065B3' />
-                  <View style={{ marginLeft: 10 }}>
-                    <Text style={{ color: 'black', marginLeft: 8 }}>
-                      {entry.clockIn}
-                    </Text>
-                    <Text style={{ color: 'black', marginLeft: 8 }}>
-                      {entry.location}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        }
+        ListFooterComponent={<View style={{ height: 80 }} />}
         numColumns={2}
         columnWrapperStyle={{
           justifyContent: 'space-between',

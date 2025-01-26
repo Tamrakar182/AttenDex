@@ -1,18 +1,14 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 
 const ProfileScreen = () => {
-  const navigation = useNavigation();
-
-  // Function to handle logout
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => console.log('Logged out!') },
+      { text: 'Logout', onPress: () => router.push('/login') },
     ]);
   };
 
@@ -20,7 +16,6 @@ const ProfileScreen = () => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
-      {/* Profile Section */}
       <View
         style={{
           alignItems: 'center',
@@ -70,7 +65,7 @@ const ProfileScreen = () => {
             paddingHorizontal: 30,
             borderRadius: 8,
           }}
-          onPress={() => router.push('/(student)/edit')}
+          onPress={() => router.push('/(teacher)/edit')}
         >
           <Text style={{ color: '#0065B3', fontWeight: 'bold' }}>
             Edit Profile
@@ -80,33 +75,6 @@ const ProfileScreen = () => {
 
       {/* Menu Items */}
       <View style={{ marginTop: 20 }}>
-        {/* Classes */}
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: 'white',
-            paddingVertical: 15,
-            paddingHorizontal: 20,
-            borderBottomWidth: 1,
-            borderBottomColor: '#f0f0f0',
-          }}
-          onPress={() => router.push('/(tabs)')}
-        >
-          <Feather name='book' size={20} color='#0065B3' />
-          <Text
-            style={{
-              flex: 1,
-              marginLeft: 20,
-              fontSize: 16,
-              color: '#333',
-            }}
-          >
-            Classes
-          </Text>
-          <Ionicons name='chevron-forward' size={20} color='#888' />
-        </TouchableOpacity>
-
         {/* Notifications */}
         <TouchableOpacity
           style={{
@@ -118,7 +86,7 @@ const ProfileScreen = () => {
             borderBottomWidth: 1,
             borderBottomColor: '#f0f0f0',
           }}
-          onPress={() => router.push('/(student)/(tabs)/notification')}
+          onPress={() => router.push('/(teacher)/(tabs)/notification')}
         >
           <Ionicons name='notifications-outline' size={20} color='#0065B3' />
           <Text
@@ -172,7 +140,7 @@ const ProfileScreen = () => {
             borderBottomWidth: 1,
             borderBottomColor: '#f0f0f0',
           }}
-          onPress={() => router.push('/(tabs)')}
+          onPress={() => router.push('/(student)/attendance')}
         >
           <Feather name='check-circle' size={20} color='#0065B3' />
           <Text

@@ -4,8 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Platform,
-  Alert,
   ScrollView,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -13,12 +11,22 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { router } from 'expo-router';
 
+interface DateChangeEvent {
+  type: string;
+  nativeEvent: {
+    timestamp: number;
+  };
+}
+
 const AddAssignment = () => {
   const [assignmentDate] = useState(new Date().toLocaleDateString());
   const [submissionDate, setSubmissionDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (
+    event: DateChangeEvent,
+    selectedDate?: Date | undefined,
+  ) => {
     setShowDatePicker(false);
     if (selectedDate) {
       const formattedDate = selectedDate.toLocaleDateString();
@@ -201,7 +209,7 @@ const AddAssignment = () => {
             alignItems: 'center',
             marginTop: 20,
           }}
-          onPress={() => router.push('/(student)/assignment/[id]')}
+          onPress={() => router.push('/(teacher)/assignment/[id]')}
         >
           <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>
             Continue

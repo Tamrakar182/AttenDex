@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const notifications = [
   {
@@ -47,8 +48,8 @@ const NotificationScreen = () => {
   }, [selectedFilter]);
 
   const groupedNotifications = useMemo(() => {
-    const thisWeek = [];
-    const older = [];
+    const thisWeek: Notification[] = [];
+    const older: Notification[] = [];
 
     filteredNotifications.forEach(notification => {
       if (
@@ -68,28 +69,27 @@ const NotificationScreen = () => {
   }, [filteredNotifications]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f5f5', padding: 20 }}>
+    <SafeAreaView style={{ flex: 1, paddingHorizontal: 15 }}>
       {/* Header */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
           paddingVertical: 10,
           borderBottomWidth: 1,
           borderBottomColor: '#ddd',
-          marginTop: 50,
         }}
       >
-        <TouchableOpacity>
-          <Ionicons name='arrow-back' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#000' }}>
+        <Text
+          style={{
+            fontSize: 18,
+            fontWeight: 'bold',
+            color: '#000',
+            marginLeft: 12,
+          }}
+        >
           Notification
         </Text>
-        <TouchableOpacity>
-          <Feather name='search' size={24} color='#000' />
-        </TouchableOpacity>
       </View>
 
       {/* Filter Buttons */}
@@ -130,6 +130,8 @@ const NotificationScreen = () => {
             paddingVertical: 8,
             paddingHorizontal: 20,
             borderRadius: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
           onPress={() => setSelectedFilter('assignment')}
         >
@@ -168,17 +170,16 @@ const NotificationScreen = () => {
         )}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
-const NotificationItem = ({
-  message,
-  time,
-}: {
+interface Notification {
   message: string;
   time: string;
-}) => (
+}
+
+const NotificationItem = ({ message, time }: Notification) => (
   <View
     style={{
       paddingVertical: 10,
