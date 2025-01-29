@@ -140,22 +140,6 @@ export default function LoginScreen() {
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => router.push('/(teacher)/(tabs)')}
-        style={{
-          backgroundColor: '#044E8C',
-          width: '100%',
-          height: 58,
-          borderRadius: 24,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 16,
-        }}
-      >
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
-          Login as Teacher
-        </Text>
-      </TouchableOpacity>
       <View
         style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}
       >

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Register() {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -11,11 +12,13 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-
+  const { register, loading, user } = useAuth();
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
   const toggleConfirmPasswordVisibility = () =>
     setConfirmPasswordVisible(!confirmPasswordVisible);
-
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
   // Function to open camera and take a photo
   const openCamera = async () => {
     // Request camera permissions
@@ -38,14 +41,34 @@ export default function Register() {
     }
   };
 
-  const handleCreateAccount = () => {
-    console.log('Account Created', {
-      studentName,
-      email,
-      password,
-      confirmPassword,
-      profileImage,
-    });
+  const handleCreateAccount = async () => {
+    // Create form data
+    const formData = new FormData();
+
+    // Add basic user info
+    formData.append('name', studentName);
+    formData.append('email', email);
+    formData.append('password', password);
+
+    // Handle the profile image if it exists
+    if (profileImage) {
+      // Get the filename from the URI
+      const filename = profileImage.split('/').pop();
+
+      // Infer the type from the extension, default to jpeg if can't determine
+      const match = /\.(\w+)$/.exec(filename || '');
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      // Create the image object
+      formData.append('photo', {
+        uri: profileImage,
+        name: filename || 'photo.jpg',
+        type: type,
+      } as any);
+    }
+
+    // Call register with formData
+    await register(formData);
   };
 
   return (
@@ -208,6 +231,7 @@ export default function Register() {
           borderRadius: 8,
           marginTop: 10,
         }}
+        disabled={loading ? true : false}
         onPress={handleCreateAccount}
       >
         <Text

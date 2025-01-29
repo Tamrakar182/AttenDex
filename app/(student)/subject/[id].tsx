@@ -10,26 +10,16 @@ import {
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Entypo from '@expo/vector-icons/Entypo';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFetchEnrolledClassesDetails } from '@/api/classes';
 // import logo from "../../assets/images/attendexlogowhite.png";
 const SubjectScreen = () => {
-  const [greeting, setGreeting] = useState('');
-  const [userName, setUserName] = useState('User');
-
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) {
-      setGreeting('Good Morning');
-    } else if (hour < 18) {
-      setGreeting('Good Afternoon');
-    } else {
-      setGreeting('Good Evening');
-    }
-  }, []);
-
+  const { id } = useLocalSearchParams();
+  const { data } = useFetchEnrolledClassesDetails(id);
+  console.log(data);
   const logo = require('../../../assets/images/attendexlogoblue.png');
   const profile = require('../../../assets/images/profilepic.png');
 
@@ -81,10 +71,10 @@ const SubjectScreen = () => {
           }}
         >
           <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0065B3' }}>
-            Computer Science
+            {/* {data.subject?.name ? data.subject?.name : ''} */}
           </Text>
           <Text style={{ fontSize: 16, color: '#666', marginTop: 4 }}>
-            Prof. John Doe
+            {/* {data.teacher?.name ? data.teacher?.name : ''} */}
           </Text>
 
           <View

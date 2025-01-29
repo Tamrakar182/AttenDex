@@ -5,22 +5,26 @@ import { QueryClient } from '@tanstack/react-query';
 const api = axios.create({
   baseURL: BASE_API,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'multipart/form-data',
   },
-  withCredentials: true,
+  // withCredentials: true,
 });
 
 export const queryClient = new QueryClient();
 
 export const endpoints = {
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    logout: '/auth/logout',
+    login: '/login',
+    register: '/register',
+    logout: '/logout',
     me: '/auth/me',
   },
   user: {
     edit: '/user/edit',
+  },
+  classes: {
+    index: '/classes',
+    details: (id: string) => `/classes/${id}`,
   },
 };
 
