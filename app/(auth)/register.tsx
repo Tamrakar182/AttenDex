@@ -1,24 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Register() {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const { register, loading, user } = useAuth();
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
-  const toggleConfirmPasswordVisibility = () =>
-    setConfirmPasswordVisible(!confirmPasswordVisible);
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
+
   // Function to open camera and take a photo
   const openCamera = async () => {
     // Request camera permissions
@@ -42,6 +46,7 @@ export default function Register() {
   };
 
   const handleCreateAccount = async () => {
+    setIsLoading(true);
     // Create form data
     const formData = new FormData();
 
@@ -69,6 +74,7 @@ export default function Register() {
 
     // Call register with formData
     await register(formData);
+    setIsLoading(false);
   };
 
   return (
@@ -234,15 +240,19 @@ export default function Register() {
         disabled={loading ? true : false}
         onPress={handleCreateAccount}
       >
-        <Text
-          style={{
-            color: '#ffffff',
-            fontSize: 16,
-            fontWeight: 'bold',
-          }}
-        >
-          Create Account
-        </Text>
+        {loading ? (
+          <ActivityIndicator color='#ffffff' />
+        ) : (
+          <Text
+            style={{
+              color: '#ffffff',
+              fontSize: 16,
+              fontWeight: 'bold',
+            }}
+          >
+            Create Account
+          </Text>
+        )}
       </TouchableOpacity>
     </View>
   );

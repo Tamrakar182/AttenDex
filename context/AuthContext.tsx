@@ -12,12 +12,7 @@ export interface AuthContextData {
     data: { email: string; password: string },
     save: boolean,
   ) => Promise<void>;
-  register: (user: {
-    name: string;
-    email: string;
-    password: string;
-    photo: File;
-  }) => Promise<void>;
+  register: (user: FormData) => Promise<void>;
   signOut: (sendRequest?: boolean) => Promise<void>;
   editUser: (data: User) => Promise<void>;
   loading: boolean;
@@ -124,12 +119,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  const register = async (user: {
-    name: string;
-    email: string;
-    password: string;
-    photo: File;
-  }) => {
+  const register = async (user: FormData) => {
     setLoading(true);
     try {
       console.log(user);
@@ -145,6 +135,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
       const storedUser = await AsyncStorage.getItem('user');
       console.log('Stored User:', storedUser);
+      toast.success('Successfully Registered');
       router.replace('/');
     } catch (err: any) {
       if (isAxiosError(err)) {
@@ -163,10 +154,10 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
             });
           });
         } else {
-          // toast.error(response?.data.message);
+          toast.error(response?.data.message);
         }
       } else {
-        // toast.error('Something went wrong');
+        toast.error('Something went wrong');
       }
     } finally {
       setLoading(false);

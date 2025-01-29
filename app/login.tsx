@@ -5,21 +5,28 @@ import {
   TouchableOpacity,
   View,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import React, { useState } from 'react';
 import { router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const { signIn, loading } = useAuth();
 
   const logo = require('../assets/images/attendexlogoblue.png');
 
-  const handleLogin = () => {
-    if (username && password) {
-      Alert.alert('Login successful');
-    } else {
-      Alert.alert('Please fill in both fields');
+  const handleLogin = async () => {
+    try {
+      await signIn({ email: username, password }, true);
+    } catch (error: any) {
+      if (error.response) {
+        Alert.alert('Error', error.response.data.message);
+      } else {
+        Alert.alert('Error', 'An error occurred. Please try again later.');
+      }
     }
   };
 
@@ -116,6 +123,7 @@ export default function LoginScreen() {
           }}
           placeholder='Enter your password'
           secureTextEntry
+          autoCapitalize='none'
           placeholderTextColor='#AEABAB'
           value={password}
           onChangeText={setPassword}
@@ -124,7 +132,7 @@ export default function LoginScreen() {
 
       {/* Login Button */}
       <TouchableOpacity
-        onPress={() => router.push('/(student)/(tabs)')}
+        onPress={() => handleLogin()}
         style={{
           backgroundColor: '#044E8C',
           width: '100%',
@@ -135,9 +143,13 @@ export default function LoginScreen() {
           marginBottom: 16,
         }}
       >
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
-          Login as Student
-        </Text>
+        {loading ? (
+          <ActivityIndicator color='white' />
+        ) : (
+          <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
+            Login as Student
+          </Text>
+        )}
       </TouchableOpacity>
 
       <View
