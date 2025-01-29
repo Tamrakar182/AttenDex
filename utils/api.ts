@@ -6,7 +6,7 @@ const api = axios.create({
   baseURL: BASE_API,
   headers: {
     'Content-Type': 'multipart/form-data',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
   // withCredentials: true,
 });
@@ -26,6 +26,9 @@ export const endpoints = {
   classes: {
     index: '/classes',
     details: (id: string) => `/classes/${id}`,
+  },
+  attendance: {
+    recent: '/recent/attendances',
   },
 };
 

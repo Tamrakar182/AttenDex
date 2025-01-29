@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,19 +5,24 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Foundation from '@expo/vector-icons/Foundation';
 import { Link, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFetchEnrolledClasses } from '@/api/classes';
+import { useAuth } from '@/context/AuthContext';
+import { useState } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Props {
   title: string;
   start_time: string;
   end_time: string;
+  code: string;
+  id: string;
   onPress: () => void;
 }
 
@@ -63,7 +67,7 @@ const ClassCard = ({
       />
 
       <Text style={{ color: 'white', fontSize: 12 }}>
-        {start_time}--{end_time}
+        {start_time}-{end_time}
       </Text>
     </View>
   </TouchableOpacity>
@@ -77,36 +81,18 @@ function getGreeting() {
 }
 
 export default function HomeScreen() {
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 500);
+
   const { data: classes, isLoading: classIsLoading } =
-    useFetchEnrolledClasses();
-  console.log(classes);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+    useFetchEnrolledClasses(debouncedSearch);
+
+  const { user } = useAuth();
 
   const profilePicture = require('../../../assets/images/profile.png');
   const logo = require('../../../assets/images/attendexlogowhite.png');
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const user = await AsyncStorage.getItem('user');
-        console.log(user);
-        if (!user) {
-          router.replace('/login'); // Redirect to login if no user is found
-        } else {
-          setUserName(JSON.parse(user).name || 'Student'); // Assuming the user object has a 'name' field
-        }
-      } catch (error) {
-        console.error('Error reading user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, []);
-
-  if (loading) {
+  if (classIsLoading || !classes) {
     return (
       <SafeAreaView
         style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
@@ -139,7 +125,6 @@ export default function HomeScreen() {
             resizeMode='contain'
           />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 30 }}>
-            <Feather name='search' size={24} color='white' />
             <Ionicons
               onPress={() => router.push('/notification')}
               name='notifications'
@@ -150,21 +135,34 @@ export default function HomeScreen() {
         </View>
         <View style={{ paddingHorizontal: 30 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Image
-              source={profilePicture}
-              style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: '#C4C4C6',
-                marginRight: 10,
-              }}
-            />
+            {user.photo ? (
+              <Image
+                source={{ uri: user.photo }}
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: '#C4C4C6',
+                  marginRight: 10,
+                }}
+              />
+            ) : (
+              <Image
+                source={profilePicture}
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: '#C4C4C6',
+                  marginRight: 10,
+                }}
+              />
+            )}
             <View>
               <Text
                 style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' }}
               >
-                Hi, {userName}!
+                Hi, {user?.name || 'N/A'}!
               </Text>
               <Text style={{ color: '#FFFFFF', marginTop: 3, fontSize: 20 }}>
                 {getGreeting()}
@@ -198,7 +196,12 @@ export default function HomeScreen() {
           color='#C4C4C6'
           style={{ marginRight: 10 }}
         />
-        <Text style={{ color: '#C4C4C6' }}>Search</Text>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          style={{ flex: 1, paddingVertical: 4 }}
+          placeholder='Search for a class'
+        />
       </View>
       <View style={{ paddingHorizontal: 30, marginBottom: 15 }}>
         <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0065B3' }}>
@@ -214,14 +217,15 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <FlatList
-        data={classes.data}
-        keyExtractor={item => item.id}
+        data={classes}
+        keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <ClassCard
-            title={item.subject.name}
-            start_time={item.start_time}
-            end_time={item.end_time}
-            code={item.subject.code}
+            id={item.id.toString()}
+            title={item.teacher_subject.subject.name}
+            start_time={item.teacher_subject.start_time}
+            end_time={item.teacher_subject.end_time}
+            code={item.teacher_subject.subject.code}
             onPress={() => router.push(`/(student)/subject/${item.id}`)}
           />
         )}

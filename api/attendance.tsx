@@ -1,33 +1,5 @@
 import api, { endpoints } from '@/utils/api';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// {
-//   "data": [
-//       {
-//           "id": 4,
-//           "student_id": 12,
-//           "teacher_subject_id": 1,
-//           "created_at": "2025-01-29T15:52:59.000000Z",
-//           "updated_at": "2025-01-29T15:52:59.000000Z",
-//           "teacher_subject": {
-//               "id": 1,
-//               "teacher_id": 2,
-//               "subject_id": 1,
-//               "days_of_week": "[null,\"1\",\"2\",\"3\"]",
-//               "start_time": "14:39:00",
-//               "end_time": "04:39:00",
-//               "created_at": "2025-01-28T10:54:48.000000Z",
-//               "updated_at": "2025-01-28T10:54:48.000000Z",
-//               "subject": {
-//                   "id": 1,
-//                   "name": "Digital Logic",
-//                   "code": "DSA",
-//                   "created_at": "2025-01-28T10:54:17.000000Z",
-//                   "updated_at": "2025-01-28T10:54:17.000000Z"
-//               }
-//           }
-//       }
-//   ]
-// }
+import { useQuery } from '@tanstack/react-query';
 
 interface EnrolledClass {
   id: number;

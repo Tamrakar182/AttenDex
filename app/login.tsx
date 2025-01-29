@@ -6,20 +6,32 @@ import {
   View,
   Image,
   ActivityIndicator,
+  Keyboard,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
+import { useKeyboard } from '@/hooks/useKeyboard';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { signIn, loading } = useAuth();
+  const { keyboardVisible } = useKeyboard();
+  const { signIn, loading, user } = useAuth();
 
   const logo = require('../assets/images/attendexlogoblue.png');
 
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, []);
+
   const handleLogin = async () => {
     try {
+      if (keyboardVisible) {
+        Keyboard.dismiss();
+      }
       await signIn({ email: username, password }, true);
     } catch (error: any) {
       if (error.response) {
@@ -80,7 +92,7 @@ export default function LoginScreen() {
             borderRadius: 16,
           }}
         >
-          Username
+          Email
         </Text>
         <TextInput
           style={{
@@ -92,7 +104,7 @@ export default function LoginScreen() {
             fontSize: 16,
             backgroundColor: '#E6EDF4',
           }}
-          placeholder='Enter your username'
+          placeholder='test@test.com'
           placeholderTextColor='#AEABAB'
           value={username}
           onChangeText={setUsername}
@@ -121,7 +133,7 @@ export default function LoginScreen() {
             marginTop: 20,
             backgroundColor: '#E6EDF4',
           }}
-          placeholder='Enter your password'
+          placeholder='********'
           secureTextEntry
           autoCapitalize='none'
           placeholderTextColor='#AEABAB'
