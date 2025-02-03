@@ -55,6 +55,7 @@ interface EnrolledClass {
 }
 
 export function useFetchEnrolledClasses(search: string) {
+  console.log(search);
   return useQuery<EnrolledClass[]>({
     queryKey: ['classes', search],
     queryFn: async () => {
@@ -63,7 +64,7 @@ export function useFetchEnrolledClasses(search: string) {
           endpoints.classes.index,
           {
             params: {
-              search,
+              name: search,
             },
           },
         );

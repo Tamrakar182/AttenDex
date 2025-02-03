@@ -3,19 +3,21 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   TextInput,
+  KeyboardAvoidingView,
 } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Foundation from '@expo/vector-icons/Foundation';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFetchEnrolledClasses } from '@/api/classes';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useFetchRecentAttendance } from '@/api/attendance';
+import RefreshableFlatList from '@/components/RefreshableFlatList';
 
 interface Props {
   title: string;
@@ -25,12 +27,6 @@ interface Props {
   id: string;
   onPress: () => void;
 }
-
-const attendanceHistory = [
-  { clockIn: '5th Dec, 7:00 am', location: 'Patan Multiple Campus' },
-  { clockIn: '5th Dec, 8:00 am', location: 'Patan Multiple Campus' },
-  { clockIn: '5th Dec, 8:40 am', location: 'Patan Multiple Campus' },
-];
 
 const ClassCard = ({
   id,
@@ -82,15 +78,28 @@ function getGreeting() {
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 500);
+  const {
+    data: attendanceHistory,
+    isLoading: attendanceHistoryLoading,
+    refetch: refetchAttendanceHistory,
+  } = useFetchRecentAttendance();
 
-  const { data: classes, isLoading: classIsLoading } =
-    useFetchEnrolledClasses(debouncedSearch);
+  const debouncedSearch = useDebounce(search, 1000);
+
+  const {
+    data: classes,
+    isLoading: classIsLoading,
+    refetch: refetchClasses,
+  } = useFetchEnrolledClasses(debouncedSearch);
 
   const { user } = useAuth();
 
   const profilePicture = require('../../../assets/images/profile.png');
   const logo = require('../../../assets/images/attendexlogowhite.png');
+
+  const handleRefresh = async () => {
+    await Promise.all([refetchClasses(), refetchAttendanceHistory()]);
+  };
 
   if (classIsLoading || !classes) {
     return (
@@ -197,10 +206,15 @@ export default function HomeScreen() {
           style={{ marginRight: 10 }}
         />
         <TextInput
-          value={search}
-          onChangeText={setSearch}
+          // value={search}
+          // onChangeText={text => setSearch(text)}
+          onSubmitEditing={() => {
+            // Trigger search only when done/return is pressed
+            useFetchEnrolledClasses(search);
+          }}
           style={{ flex: 1, paddingVertical: 4 }}
           placeholder='Search for a class'
+          returnKeyType='done' // This changes the keyboard's return key to "Done"
         />
       </View>
       <View style={{ paddingHorizontal: 30, marginBottom: 15 }}>
@@ -216,17 +230,19 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <FlatList
-        data={classes}
+      <RefreshableFlatList
+        data={classIsLoading ? [] : classes}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <ClassCard
-            id={item.id.toString()}
+            id={item.teacher_subject_id.toString()}
             title={item.teacher_subject.subject.name}
             start_time={item.teacher_subject.start_time}
             end_time={item.teacher_subject.end_time}
             code={item.teacher_subject.subject.code}
-            onPress={() => router.push(`/(student)/subject/${item.id}`)}
+            onPress={() =>
+              router.push(`/(student)/subject/${item.teacher_subject_id}`)
+            }
           />
         )}
         ListHeaderComponent={<HeaderComponent />}
@@ -246,9 +262,6 @@ export default function HomeScreen() {
               >
                 Attendance History
               </Text>
-              <Link href='/(student)/attendance'>
-                <Text style={{ color: '#0065B3' }}>View All</Text>
-              </Link>
             </View>
             <View
               style={{
@@ -258,30 +271,32 @@ export default function HomeScreen() {
                 margin: 15,
               }}
             >
-              {attendanceHistory.map((entry, index) => (
-                <View
-                  key={index}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 5,
-                    padding: 10,
-                  }}
-                >
-                  <Ionicons name='time-outline' size={18} color='#0065B3' />
-                  <View style={{ marginLeft: 10 }}>
-                    <Text style={{ color: 'black', marginLeft: 8 }}>
-                      {entry.clockIn}
-                    </Text>
-                    <Text style={{ color: 'black', marginLeft: 8 }}>
-                      {entry.location}
-                    </Text>
+              {!attendanceHistoryLoading &&
+                attendanceHistory.data.map((entry, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginTop: 5,
+                      padding: 10,
+                    }}
+                  >
+                    <Ionicons name='time-outline' size={18} color='#0065B3' />
+                    <View style={{ marginLeft: 10 }}>
+                      <Text style={{ color: 'black', marginLeft: 8 }}>
+                        {entry.subject}
+                      </Text>
+                      <Text style={{ color: 'black', marginLeft: 8 }}>
+                        {entry.created_at}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                ))}
             </View>
           </View>
         }
+        onRefresh={false}
         numColumns={2}
         columnWrapperStyle={{
           justifyContent: 'space-between',

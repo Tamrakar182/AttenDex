@@ -28,7 +28,15 @@ export const endpoints = {
     details: (id: string) => `/classes/${id}`,
   },
   attendance: {
+    index: '/attendances',
     recent: '/recent/attendances',
+  },
+  assignments: {
+    index: '/assignments',
+    teacher: (id: string) => `/assignments/${id}`,
+  },
+  notifications: {
+    index: '/notification',
   },
 };
 

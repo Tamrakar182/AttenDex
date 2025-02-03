@@ -7,14 +7,14 @@ export default function StudentLayout() {
   if (user === null) {
     return <Redirect href={'/login'} />;
   }
-  
+
   return (
     <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
       <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
       <Stack.Screen name='assignment/[id]' options={{ headerShown: false }} />
       <Stack.Screen name='edit' options={{ headerShown: false }} />
       <Stack.Screen name='attendance' options={{ headerShown: false }} />
-      <Stack.Screen name='camera' options={{ headerShown: false }} />
+      <Stack.Screen name='camera/[id]' options={{ headerShown: false }} />
     </Stack>
   );
 }
