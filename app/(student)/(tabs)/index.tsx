@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFetchEnrolledClasses } from '@/api/classes';
 import { useAuth } from '@/context/AuthContext';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useFetchRecentAttendance } from '@/api/attendance';
 import RefreshableFlatList from '@/components/RefreshableFlatList';
@@ -27,6 +27,57 @@ interface Props {
   id: string;
   onPress: () => void;
 }
+
+const mockData = [
+  {
+    id: 1,
+    teacher_subject_id: '101',
+    teacher_subject: {
+      subject: {
+        name: 'Mathematics',
+        code: 'MATH101',
+      },
+      start_time: '09:00',
+      end_time: '10:30',
+    },
+  },
+  {
+    id: 2,
+    teacher_subject_id: '102',
+    teacher_subject: {
+      subject: {
+        name: 'Physics',
+        code: 'PHY101',
+      },
+      start_time: '11:00',
+      end_time: '12:30',
+    },
+  },
+  {
+    id: 3,
+    teacher_subject_id: '103',
+    teacher_subject: {
+      subject: {
+        name: 'Computer Science',
+        code: 'CS101',
+      },
+      start_time: '14:00',
+      end_time: '15:30',
+    },
+  },
+  {
+    id: 4,
+    teacher_subject_id: '104',
+    teacher_subject: {
+      subject: {
+        name: 'English',
+        code: 'ENG101',
+      },
+      start_time: '16:00',
+      end_time: '17:30',
+    },
+  },
+];
 
 const ClassCard = ({
   id,
@@ -78,38 +129,19 @@ function getGreeting() {
 
 export default function HomeScreen() {
   const [search, setSearch] = useState('');
-  const {
-    data: attendanceHistory,
-    isLoading: attendanceHistoryLoading,
-    refetch: refetchAttendanceHistory,
-  } = useFetchRecentAttendance();
+
+  const { data: attendanceHistory, isLoading: attendanceHistoryLoading } =
+    useFetchRecentAttendance();
 
   const debouncedSearch = useDebounce(search, 1000);
 
-  const {
-    data: classes,
-    isLoading: classIsLoading,
-    refetch: refetchClasses,
-  } = useFetchEnrolledClasses(debouncedSearch);
+  const { data: classes, isLoading: classIsLoading } =
+    useFetchEnrolledClasses(debouncedSearch);
 
   const { user } = useAuth();
 
   const profilePicture = require('../../../assets/images/profile.png');
   const logo = require('../../../assets/images/attendexlogowhite.png');
-
-  const handleRefresh = async () => {
-    await Promise.all([refetchClasses(), refetchAttendanceHistory()]);
-  };
-
-  if (classIsLoading || !classes) {
-    return (
-      <SafeAreaView
-        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-      >
-        <ActivityIndicator size='large' color='#0065B3' />
-      </SafeAreaView>
-    );
-  }
 
   const HeaderComponent = () => (
     <View>
@@ -144,9 +176,9 @@ export default function HomeScreen() {
         </View>
         <View style={{ paddingHorizontal: 30 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {user.photo ? (
+            {user?.photo ? (
               <Image
-                source={{ uri: user.photo }}
+                source={{ uri: user?.photo }}
                 style={{
                   width: 60,
                   height: 60,
@@ -206,15 +238,11 @@ export default function HomeScreen() {
           style={{ marginRight: 10 }}
         />
         <TextInput
-          // value={search}
-          // onChangeText={text => setSearch(text)}
-          onSubmitEditing={() => {
-            // Trigger search only when done/return is pressed
-            useFetchEnrolledClasses(search);
-          }}
+          defaultValue={search}
+          // trigger when pressing tick on keyboard
+          onSubmitEditing={e => setSearch(e.nativeEvent.text)}
           style={{ flex: 1, paddingVertical: 4 }}
           placeholder='Search for a class'
-          returnKeyType='done' // This changes the keyboard's return key to "Done"
         />
       </View>
       <View style={{ paddingHorizontal: 30, marginBottom: 15 }}>
@@ -231,7 +259,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <RefreshableFlatList
-        data={classIsLoading ? [] : classes}
+        data={classIsLoading && !classes ? [] : classes}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <ClassCard
@@ -296,7 +324,6 @@ export default function HomeScreen() {
             </View>
           </View>
         }
-        onRefresh={false}
         numColumns={2}
         columnWrapperStyle={{
           justifyContent: 'space-between',
