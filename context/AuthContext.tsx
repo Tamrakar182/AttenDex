@@ -1,8 +1,9 @@
-import { User, UserLoginResponseI, UserRegisterResponseI } from '@/types/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User } from '@/types/user';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import api, { endpoints } from '@/utils/api';
-import { toast } from 'sonner-native';
+import Toast from 'react-native-toast-message';
 import { isAxiosError } from 'axios';
 
 export interface AuthContextData {
@@ -11,13 +12,7 @@ export interface AuthContextData {
     data: { email: string; password: string },
     save: boolean,
   ) => Promise<void>;
-  register: (user: {
-    name: string;
-    email: string;
-    phone: string;
-    gender: string;
-    password: string;
-  }) => Promise<void>;
+  register: (user: FormData) => Promise<void>;
   signOut: (sendRequest?: boolean) => Promise<void>;
   editUser: (data: User) => Promise<void>;
   loading: boolean;
@@ -36,13 +31,53 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
 
+  useEffect(() => {
+    // Load user data from AsyncStorage on app start
+    const loadUser = async () => {
+      setLoading(true);
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        const storedToken = await AsyncStorage.getItem('token');
+
+        if (storedUser && storedToken) {
+          const parsedUser = JSON.parse(storedUser);
+          api.defaults.headers.common[
+            'Authorization'
+          ] = `Bearer ${storedToken}`;
+          setUser(parsedUser);
+        }
+      } catch (error) {
+        console.log('Error loading user data from AsyncStorage:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUser();
+  }, []);
+
+  const saveToStorage = async (userData: User, token: string) => {
+    try {
+      await AsyncStorage.setItem('user', JSON.stringify(userData));
+      await AsyncStorage.setItem('token', token);
+    } catch (error) {
+      console.log('Error saving to AsyncStorage:', error);
+    }
+  };
+
+  const clearStorage = async () => {
+    try {
+      await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('token');
+    } catch (error) {
+      console.log('Error clearing AsyncStorage:', error);
+    }
+  };
+
   const signIn = async (user: { email: string; password: string }) => {
     setLoading(true);
     try {
-      const { data } = await api.post<UserLoginResponseI>(
-        endpoints.auth.login,
-        user,
-      );
+      const { data } = await api.post(endpoints.auth.login, user);
 
       const userData = {
         ...data.data,
@@ -52,65 +87,71 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
 
       setUser(userData);
-      toast.success('Successfully Logged In');
+      await saveToStorage(userData, data.token);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Successfully Logged In',
+      });
       router.replace('/');
     } catch (err: any) {
       const { response } = err;
 
       console.log(err);
-      // email doesnt exist
       if (err.toJSON().status === 404) {
-        toast.error("User doesn't exist");
+        Toast.show({
+          type: 'error',
+          text1: "User doesn't exist",
+        });
         return;
       }
 
-      // password didnt match
       if (err.toJSON().status === 409) {
-        toast.error('Invalid Email or Password');
+        Toast.show({
+          type: 'error',
+          text1: 'Invalid Email or Password',
+        });
         return;
       }
 
-      // backend error
       if (response && response.data) {
-        toast.error(response?.data.message);
+        Toast.show({
+          type: 'error',
+          text1: response?.data.message,
+        });
         return;
       }
 
-      // generic error
-      toast.error('Something went wrong');
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (user: {
-    name: string;
-    email: string;
-    phone: string;
-    gender: string;
-    password: string;
-  }) => {
+  const register = async (user: FormData) => {
     setLoading(true);
     try {
-      const { data } = await api.post<UserRegisterResponseI>(
-        endpoints.auth.register,
-        user,
-      );
-      const userObj = {
-        ...data.user,
-        phone_no: data?.user.phone_no ? data.user.phone_no : null,
-      };
-      setUser({
-        ...userObj,
-        token: data.token,
-      });
+      console.log(user);
+      const { data } = await api.post(endpoints.auth.register, user);
+
       api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-      setLoading(false);
+      setUser(data.student);
+
+      await saveToStorage(data.student, data.token);
+
+      const storedUser = await AsyncStorage.getItem('user');
+      Toast.show({
+        type: 'success',
+        text1: 'Successfully Registered',
+      });
       router.replace('/');
-      toast.success('Sucessfully Registered User');
     } catch (err: any) {
       if (isAxiosError(err)) {
         const { response } = err;
+        console.log(response?.data);
         if (
           response &&
           response.data &&
@@ -118,17 +159,25 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         ) {
           const validationErrors = response.data.data;
 
-          // loop through all validation errors
           Object.keys(validationErrors).forEach(key => {
             validationErrors[key].forEach((message: string) => {
-              toast.error(message);
+              Toast.show({
+                type: 'error',
+                text1: message,
+              });
             });
           });
         } else {
-          toast.error(response?.data.message);
+          Toast.show({
+            type: 'error',
+            text1: response?.data.message,
+          });
         }
       } else {
-        toast.error('Something went wrong');
+        Toast.show({
+          type: 'error',
+          text1: 'Something went wrong',
+        });
       }
     } finally {
       setLoading(false);
@@ -138,31 +187,43 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   const editUser = async (data: User) => {
     try {
       setUser(data);
-      toast.success('Profile Updated Successfully');
+      await AsyncStorage.setItem('user', JSON.stringify(data));
+      Toast.show({
+        type: 'success',
+        text1: 'Profile Updated Successfully',
+      });
     } catch (err: any) {
       console.log(err.toJSON());
-      toast.error('Something went wrong while updating profile');
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong while updating profile',
+      });
     }
   };
 
   const signOut = async (sendRequest: boolean = true) => {
     try {
       if (sendRequest) {
-        // Send request for logout only if sendRequest is true
         await api.get(endpoints.auth.logout);
       }
     } catch (err: any) {
       const { response } = err;
       if (response && response.data) {
-        toast.error(response?.data.message);
+        Toast.show({
+          type: 'error',
+          text1: response?.data.message,
+        });
       }
       console.log(err.toJSON());
-      toast.error('Something went wrong while logging out');
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong while logging out',
+      });
     } finally {
-      // Logout the user regardless
+      await clearStorage();
       setUser(null);
       setLoading(false);
-      router.replace('/');
+      router.replace('/login');
     }
   };
 

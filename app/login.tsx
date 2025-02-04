@@ -5,21 +5,40 @@ import {
   TouchableOpacity,
   View,
   Image,
+  ActivityIndicator,
+  Keyboard,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import { useKeyboard } from '@/hooks/useKeyboard';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const { keyboardVisible } = useKeyboard();
+  const { signIn, loading, user } = useAuth();
 
   const logo = require('../assets/images/attendexlogoblue.png');
 
-  const handleLogin = () => {
-    if (username && password) {
-      Alert.alert('Login successful');
-    } else {
-      Alert.alert('Please fill in both fields');
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      if (keyboardVisible) {
+        Keyboard.dismiss();
+      }
+      await signIn({ email: username, password }, true);
+    } catch (error: any) {
+      if (error.response) {
+        Alert.alert('Error', error.response.data.message);
+      } else {
+        Alert.alert('Error', 'An error occurred. Please try again later.');
+      }
     }
   };
 
@@ -73,7 +92,7 @@ export default function LoginScreen() {
             borderRadius: 16,
           }}
         >
-          Username
+          Email
         </Text>
         <TextInput
           style={{
@@ -85,7 +104,7 @@ export default function LoginScreen() {
             fontSize: 16,
             backgroundColor: '#E6EDF4',
           }}
-          placeholder='Enter your username'
+          placeholder='test@test.com'
           placeholderTextColor='#AEABAB'
           value={username}
           onChangeText={setUsername}
@@ -114,8 +133,9 @@ export default function LoginScreen() {
             marginTop: 20,
             backgroundColor: '#E6EDF4',
           }}
-          placeholder='Enter your password'
+          placeholder='********'
           secureTextEntry
+          autoCapitalize='none'
           placeholderTextColor='#AEABAB'
           value={password}
           onChangeText={setPassword}
@@ -124,7 +144,7 @@ export default function LoginScreen() {
 
       {/* Login Button */}
       <TouchableOpacity
-        onPress={() => router.push('/(student)/(tabs)')}
+        onPress={() => handleLogin()}
         style={{
           backgroundColor: '#044E8C',
           width: '100%',
@@ -135,27 +155,15 @@ export default function LoginScreen() {
           marginBottom: 16,
         }}
       >
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
-          Login as Student
-        </Text>
+        {loading ? (
+          <ActivityIndicator color='white' />
+        ) : (
+          <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
+            Login as Student
+          </Text>
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() => router.push('/(teacher)/(tabs)')}
-        style={{
-          backgroundColor: '#044E8C',
-          width: '100%',
-          height: 58,
-          borderRadius: 24,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: 16,
-        }}
-      >
-        <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
-          Login as Teacher
-        </Text>
-      </TouchableOpacity>
       <View
         style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}
       >

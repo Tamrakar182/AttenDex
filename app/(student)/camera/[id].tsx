@@ -8,7 +8,7 @@ import {
   View,
   Alert,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useMarkAttendance } from '@/api/attendance';
 import Toast from 'react-native-toast-message';
 
@@ -18,6 +18,7 @@ export default function Camera() {
   const [isProcessing, setIsProcessing] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const markAttendance = useMarkAttendance();
+  const { id } = useLocalSearchParams();
 
   if (!permission) {
     return <View />;
@@ -62,7 +63,7 @@ export default function Camera() {
         } as any);
 
         // Add teacher_subject_id
-        formData.append('teacher_subject_id', '1');
+        formData.append('teacher_subject_id', id);
         // console.log(formData);
         // Send the formData to backend
         await markAttendance.mutateAsync(formData, {

@@ -3,12 +3,15 @@ import { View, Text, Image, TouchableOpacity, Alert } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
 
 const ProfileScreen = () => {
+  const { signOut, user } = useAuth();
+  console.log(user);
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => router.push('/login') },
+      { text: 'Logout', onPress: () => signOut() },
     ]);
   };
 
@@ -27,7 +30,11 @@ const ProfileScreen = () => {
       >
         <View style={{ marginTop: 50 }}>
           <Image
-            source={profilePic}
+            source={{
+              uri: user.photo
+                ? user?.photo
+                : 'https://pixabay.com/vectors/blank-profile-picture-mystery-man-973460/',
+            }}
             style={{
               borderRadius: 50,
               width: 128,
@@ -44,21 +51,13 @@ const ProfileScreen = () => {
             fontSize: 22,
             fontWeight: 'bold',
             color: '#fff',
+            marginBottom: 4,
           }}
         >
-          Ram Shrestha
+          {user?.name}
         </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            color: '#ffff',
-            marginBottom: 20,
-            marginTop: 2,
-          }}
-        >
-          12-Science Faculty - Sec B
-        </Text>
-        <TouchableOpacity
+
+        {/* <TouchableOpacity
           style={{
             backgroundColor: 'white',
             paddingVertical: 10,
@@ -70,7 +69,7 @@ const ProfileScreen = () => {
           <Text style={{ color: '#0065B3', fontWeight: 'bold' }}>
             Edit Profile
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Menu Items */}
@@ -98,33 +97,6 @@ const ProfileScreen = () => {
             }}
           >
             Notifications
-          </Text>
-          <Ionicons name='chevron-forward' size={20} color='#888' />
-        </TouchableOpacity>
-
-        {/* Settings */}
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: 'white',
-            paddingVertical: 15,
-            paddingHorizontal: 20,
-            borderBottomWidth: 1,
-            borderBottomColor: '#f0f0f0',
-          }}
-          onPress={() => console.log('Settings Clicked')}
-        >
-          <Ionicons name='settings-outline' size={20} color='#0065B3' />
-          <Text
-            style={{
-              flex: 1,
-              marginLeft: 20,
-              fontSize: 16,
-              color: '#333',
-            }}
-          >
-            Settings
           </Text>
           <Ionicons name='chevron-forward' size={20} color='#888' />
         </TouchableOpacity>

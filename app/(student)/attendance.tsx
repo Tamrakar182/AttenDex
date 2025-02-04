@@ -1,104 +1,60 @@
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-
-interface Attendance {
-  id: string;
-  date: string;
-  subject: string;
-  status: string;
-  time: string;
-  location: string;
-}
-
-const attendanceRecords: Attendance[] = [
-  {
-    id: '1',
-    date: '5th Dec 2023',
-    subject: 'IIT',
-    status: 'Present',
-    time: '7:00 am',
-    location: 'Patan Multiple Campus',
-  },
-  {
-    id: '2',
-    date: '5th Dec 2023',
-    subject: 'DBMS',
-    status: 'Present',
-    time: '8:00 am',
-    location: 'Patan Multiple Campus',
-  },
-  {
-    id: '3',
-    date: '4th Dec 2023',
-    subject: 'Networks',
-    status: 'Absent',
-    time: '10:00 am',
-    location: 'Patan Multiple Campus',
-  },
-  {
-    id: '4',
-    date: '4th Dec 2023',
-    subject: 'Security',
-    status: 'Present',
-    time: '11:30 am',
-    location: 'Patan Multiple Campus',
-  },
-];
+import { useFetchRecentAttendance } from '@/api/attendance';
 
 const Header = () => (
   <View style={styles.header}>
-    <Pressable hitSlop={30} onPress={() => router.back()} style={styles.backButton}>
-      <Ionicons name='arrow-back' size={24} color='#0065B3' />
-    </Pressable>
+    <Ionicons
+      name='arrow-back'
+      size={24}
+      color='#0065B3'
+      style={styles.backButton}
+      onPress={() => router.back()}
+    />
     <Text style={styles.headerTitle}>Attendance History</Text>
   </View>
 );
 
 const AttendanceScreen = () => {
-  const renderItem = (item: Attendance) => (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.date}>{item.date}</Text>
-        <Text
-          style={[
-            styles.status,
-            { color: item.status === 'Present' ? '#00A36C' : '#FF3B30' },
-          ]}
-        >
-          {item.status}
-        </Text>
-      </View>
-      <Text style={styles.subject}>{item.subject}</Text>
-      <View style={styles.detailsRow}>
-        <View style={styles.iconText}>
-          <Ionicons name='time-outline' size={16} color='#666' />
-          <Text style={styles.details}>{item.time}</Text>
-        </View>
-        <View style={styles.iconText}>
-          <Ionicons name='location-outline' size={16} color='#666' />
-          <Text style={styles.details}>{item.location}</Text>
-        </View>
-      </View>
-    </View>
-  );
+  const { data, isLoading } = useFetchRecentAttendance();
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <Header />
-      <FlatList
-        data={attendanceRecords}
-        renderItem={item => renderItem(item.item)}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-      />
+      <ScrollView contentContainerStyle={styles.list}>
+        {data.data?.length > 0 ? (
+          data.data.map(item => (
+            <View key={item.id} style={styles.card}>
+              <View style={styles.headerRow}>
+                <Text style={styles.date}>{item.created_at}</Text>
+                <Text
+                  style={[
+                    styles.status,
+                    {
+                      color: item.status === 'present' ? '#00A36C' : '#FF3B30',
+                    },
+                  ]}
+                >
+                  {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                </Text>
+              </View>
+              <Text style={styles.subject}>{item.subject}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.noDataText}>No attendance records found</Text>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -137,21 +93,7 @@ const styles = StyleSheet.create({
   subject: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
     color: '#333',
-  },
-  detailsRow: {
-    flexDirection: 'column',
-    gap: 4,
-  },
-  iconText: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  details: {
-    fontSize: 14,
-    color: '#666',
   },
   header: {
     flexDirection: 'row',
@@ -166,9 +108,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#0065B3',
+    marginLeft: 10,
   },
   backButton: {
     padding: 8,
+  },
+  noDataText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#888',
+    marginTop: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
